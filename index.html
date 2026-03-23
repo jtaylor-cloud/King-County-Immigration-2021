@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparing Percentages · Real Data Lesson</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: #2a2a3a;
+    --text: #e8e6f0;
+    --muted: #7a7890;
+    --c1: #ff6b6b;
+    --c2: #4ecdc4;
+    --c3: #ffe66d;
+    --correct: #6bffb8;
+    --wrong: #ff6b6b;
+    --accent: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* Progress bar */
+  #progress-bar-container {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 100;
+  }
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--c1), var(--accent));
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  /* Nav */
+  nav {
+    position: fixed;
+    top: 3px; left: 0; right: 0;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 99;
+  }
+
+  .nav-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .nav-steps {
+    display: flex;
+    gap: 6px;
+  }
+
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .step-dot.active { background: var(--accent); transform: scale(1.3); }
+  .step-dot.done { background: var(--correct); }
+
+  /* Main layout */
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 90px 2rem 4rem;
+  }
+
+  /* Sections */
+  .section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section header */
+  .section-tag {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  p { margin-bottom: 1rem; color: #c8c6d8; }
+
+  /* Callout boxes */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout.key {
+    border-left-color: var(--c3);
+    background: rgba(255,230,109,0.06);
+  }
+
+  .callout strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--accent);
+  }
+
+  .callout.key strong { color: var(--c3); }
+
+  /* Formula */
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    text-align: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .formula .big {
+    font-size: 1.6rem;
+    color: var(--c3);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Data highlight cards */
+  .data-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .data-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .data-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .data-card .cohort-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .data-card .big-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .data-card .context {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  /* Charts */
+  .chart-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .chart-box .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  .chart-wrap { position: relative; height: 260px; }
+  .chart-wrap.short { height: 200px; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 1.2rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* Interactive comparison */
+  .compare-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .topic-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .topic-btn:hover, .topic-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* Insight reveal */
+  .insight-reveal {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 13px;
+    color: var(--muted);
+    min-height: 60px;
+    transition: all 0.3s;
+  }
+
+  .insight-reveal.shown {
+    border-color: var(--c2);
+    color: var(--text);
+  }
+
+  .insight-reveal .insight-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c2);
+    margin-bottom: 0.3rem;
+    display: none;
+  }
+
+  .insight-reveal.shown .insight-label { display: block; }
+
+  /* Quiz */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin: 1.5rem 0;
+  }
+
+  .quiz-card .q-num {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .quiz-card .q-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .option-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(167,139,250,0.08);
+  }
+
+  .option-btn .opt-letter {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .option-btn.correct { border-color: var(--correct); background: rgba(107,255,184,0.08); }
+  .option-btn.correct .opt-letter { background: var(--correct); color: #000; }
+  .option-btn.wrong { border-color: var(--wrong); background: rgba(255,107,107,0.08); }
+  .option-btn.wrong .opt-letter { background: var(--wrong); color: #fff; }
+  .option-btn:disabled { cursor: default; }
+
+  .feedback {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .feedback.correct-fb { background: rgba(107,255,184,0.1); border: 1px solid var(--correct); color: var(--correct); display: block; }
+  .feedback.wrong-fb { background: rgba(255,107,107,0.1); border: 1px solid var(--wrong); color: #ffaaaa; display: block; }
+
+  /* Score tracker */
+  #score-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.3rem 1rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c3);
+    margin-bottom: 1rem;
+  }
+
+  /* Nav buttons */
+  .nav-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 1.75rem;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn.primary:hover { background: #9070e8; border-color: #9070e8; }
+  .btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* Pitfalls */
+  .pitfall {
+    background: rgba(255,107,107,0.07);
+    border: 1px solid rgba(255,107,107,0.3);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .pitfall .pitfall-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c1);
+    margin-bottom: 0.4rem;
+  }
+
+  /* Final summary */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .summary-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+
+  .summary-item h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .summary-item p { font-size: 13px; margin: 0; }
+
+  /* Prompt selection cards */
+  .prompt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+  }
+
+  .prompt-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  }
+
+  .prompt-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .prompt-card.selected { border-color: var(--c3); background: rgba(255,230,109,0.07); }
+
+  .prompt-card .prompt-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .prompt-card.selected .prompt-num { color: var(--c3); }
+  .prompt-card .prompt-text { font-size: 13px; color: #c8c6d8; line-height: 1.55; }
+
+  .selected-prompt-display {
+    background: rgba(255,230,109,0.08);
+    border: 1px solid rgba(255,230,109,0.3);
+    border-radius: 8px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1.25rem;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .sp-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--c3);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  @media (max-width: 600px) { .prompt-grid { grid-template-columns: 1fr; } }
+
+  /* Email composer */
+  .email-composer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin: 1.5rem 0;
+  }
+
+  .ec-field {
+    margin-bottom: 1.1rem;
+  }
+
+  .ec-label {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .ec-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.65rem 0.9rem;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .ec-input:focus { border-color: var(--accent); }
+
+  .ec-readonly {
+    color: var(--muted);
+    cursor: default;
+    user-select: none;
+  }
+
+  .ec-textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+  }
+
+  .char-count {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .ec-preview-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .ec-preview-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .ec-preview-body {
+    font-size: 13px;
+    color: #c8c6d8;
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  .ec-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .ec-status {
+    margin-top: 1rem;
+    font-size: 13px;
+    min-height: 1.5rem;
+    transition: all 0.3s;
+  }
+
+  .ec-status.sending { color: var(--muted); }
+  .ec-status.sent { color: var(--correct); font-family: 'Syne', sans-serif; font-weight: 700; }
+  .ec-status.error { color: var(--c1); }
+
+  .reveal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .reveal-card:hover { border-color: var(--accent); }
+  .reveal-card.open { border-color: var(--c2); background: rgba(78,205,196,0.05); cursor: default; }
+  .reveal-card .rc-question {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .reveal-card .rc-question .rc-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    transition: transform 0.3s;
+  }
+  .reveal-card.open .rc-question .rc-icon { transform: rotate(45deg); }
+  .reveal-card .rc-answer {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: #c8c6d8;
+    line-height: 1.7;
+  }
+  .reveal-card.open .rc-answer { display: block; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+  }
+  .stat-mini {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+  }
+  .stat-mini .sm-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .stat-mini .sm-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--c1), var(--c2), var(--c3));
+    border-radius: 2px;
+  }
+  .timeline-item {
+    margin-bottom: 1.25rem;
+    padding-left: 1rem;
+    position: relative;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 8px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+  .timeline-item:nth-child(1)::before { background: var(--c1); }
+  .timeline-item:nth-child(2)::before { background: var(--c2); }
+  .timeline-item:nth-child(3)::before { background: var(--c3); }
+  .timeline-item .ti-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .timeline-item:nth-child(1) .ti-label { color: var(--c1); }
+  .timeline-item:nth-child(2) .ti-label { color: var(--c2); }
+  .timeline-item:nth-child(3) .ti-label { color: var(--c3); }
+  .timeline-item p { font-size: 13px; margin: 0; color: #c8c6d8; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.25rem 0;
+  }
+  .two-col .chart-box { margin: 0; }
+
+  @media (max-width: 600px) {
+    .data-cards { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    h1 { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<nav>
+  <div class="nav-title">Percentages · Real Data</div>
+  <div class="nav-steps" id="nav-steps"></div>
+</nav>
+
+<main>
+
+<!-- SECTION 0: Who are we talking about? -->
+<div class="section active" id="section-0">
+  <div class="section-tag">Before the Lesson · Meet the Data</div>
+  <h1>254,278 people.<br><span style="color:var(--accent)">Who are they?</span></h1>
+  <p>Before we do any math, let's spend time with the people in this dataset. The U.S. Census Bureau counted every foreign-born resident in the Seattle area as part of the 2021 American Community Survey. That's over a quarter million people with distinct histories, languages, jobs, and reasons for coming to the U.S.</p>
+
+  <p>The survey breaks them into three groups — or <strong>cohorts</strong> — based on when they arrived:</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="ti-label">Group A · Arrived 2010 or later</div>
+      <p>91,815 people. The most recent arrivals — some are only a few years into life in the U.S. Many are in their 20s and 30s. Some came for university or tech jobs. Others came as refugees. Their lives here are still taking shape.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="ti-label">Group B · Arrived 2000–2009</div>
+      <p>61,921 people. The "middle" cohort. They've had 12–21 years to settle in. Many have started families, built careers, and put down roots. This is the smallest of the three groups.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="ti-label">Group C · Arrived before 2000</div>
+      <p>100,542 people. The longest-established group — some have been here for 30, 40, even 50+ years. Many are now citizens, homeowners, and grandparents. Their median age is 53.9 years.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Where do they come from?</strong>
+    Over half of all three groups were born in Asia — making Seattle's foreign-born population heavily Asian. But the composition shifts: Latin America's share triples from Group A (12.6%) to Group B (26.3%), while Africa's share more than doubles from Group C (6.5%) to Group A (15.5%). These patterns reflect how global migration to the U.S. has changed over decades.
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title">World region of birth — how it shifts across cohorts</div>
+    <div class="chart-wrap">
+      <canvas id="introRegionChart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--c1)"></span>Group A (2010+)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c2)"></span>Group B (2000–09)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c3)"></span>Group C (before 2000)</div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <span></span>
+    <button class="btn primary" onclick="goTo(1)">Next: What their lives look like →</button>
+  </div>
+</div>
+
+<!-- SECTION 1: Deep dive into the data -->
+<div class="section" id="section-1">
+  <div class="section-tag">Before the Lesson · Exploring the Data</div>
+  <h2>A closer look at their lives</h2>
+
+  <p>The census captures a remarkable snapshot: education, income, housing, employment, language, citizenship. Let's look at each cohort across these dimensions — not with formulas yet, just observation. What stands out to you?</p>
+
+  <h3>Age &amp; Life Stage</h3>
+  <p>The three groups are at very different life stages. Median age alone tells a story:</p>
+
+  <div class="stat-row">
+    <div class="stat-mini">
+      <div class="sm-val" style="color:var(--c1)">30.0</div>
+      <div class="sm-label">Median age<br>Group A</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-val" style="color:var(--c2)">38.9</div>
+      <div class="sm-label">Median age<br>Group B</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-val" style="color:var(--c3)">53.9</div>
+      <div class="sm-label">Median age<br>Group C</div>
+    </div>
+  </div>
+
+  <p>Group A's median is 30 — squarely in early adulthood. Group C's is nearly 54. Someone who arrived before 2000 as a 30-year-old is now in their mid-50s. Age shapes everything else: employment type, housing, income, retirement. Keep this in mind as we look at the other numbers.</p>
+
+  <div class="chart-box">
+    <div class="chart-title">Age distribution — Group A skews young, Group C skews older</div>
+    <div class="chart-wrap">
+      <canvas id="introAgeChart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--c1)"></span>Group A (2010+)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c2)"></span>Group B (2000–09)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c3)"></span>Group C (before 2000)</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Education</h3>
+  <p>Group A stands out: 34.8% hold a graduate or professional degree, compared to 18.3% in Group B and 15.9% in Group C. Seattle's tech industry draws highly-educated workers from abroad. But Group A is <em>polarized</em> — Group B actually has the highest share without a high school diploma (22.8% vs 13.1% for Group A and 20.4% for Group C). The recent cohort has more people at both ends of the education ladder.</p>
+
+  <div class="chart-box">
+    <div class="chart-title">Educational attainment — population 25 and over</div>
+    <div class="chart-wrap">
+      <canvas id="introEduChart"></canvas>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Housing &amp; Economic Stability</h3>
+  <p>Time in the country shows up clearly in housing. Only 22.2% of Group A own their home — nearly everyone rents. By Group C, that flips: 60.7% own. Buying a home takes years of savings and credit history. What might surprise you: Group A still has the <em>highest</em> median household income ($95,809) despite renting more and arriving most recently.</p>
+
+  <div class="two-col">
+    <div class="chart-box">
+      <div class="chart-title">Home ownership rate (%)</div>
+      <div class="chart-wrap short">
+        <canvas id="introHousingChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Median household income ($)</div>
+      <div class="chart-wrap short">
+        <canvas id="introIncomeChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Citizenship &amp; Language</h3>
+  <p>Group C has the highest naturalization rate — 79% are citizens vs just 11.6% in Group A. Citizenship requires at minimum five years as a permanent resident, so Group A hasn't had time. On language: 82% of all foreign-born residents speak a language other than English at home, and around 42% across all three groups say they don't speak English "very well" — strikingly consistent across cohorts.</p>
+
+  <p>Click each question below to explore a surprising finding in the data:</p>
+
+  <div class="reveal-card" onclick="toggleReveal(this)">
+    <div class="rc-question">
+      Why does Group A have the highest income AND the highest poverty rate at the same time?
+      <span class="rc-icon">+</span>
+    </div>
+    <div class="rc-answer">
+      Group A's median household income is $95,809 — the highest of the three groups — yet it also has the highest poverty rate at 18.4%. The group is highly polarized. Seattle draws extremely high-earning tech workers and international students at one end, and refugees and low-wage service workers at the other. The median gets pulled up by high earners, but there's a large tail of people in poverty. This is exactly why single statistics can mislead — and it's central to what we'll practice in this lesson.
+    </div>
+  </div>
+
+  <div class="reveal-card" onclick="toggleReveal(this)">
+    <div class="rc-question">
+      Group B has the highest labor force participation (79.2%) — why not Group A, the youngest group?
+      <span class="rc-icon">+</span>
+    </div>
+    <div class="rc-answer">
+      Group B (arrived 2000–2009) has 79.2% of working-age adults in the labor force — higher than Group A (73.4%) and Group C (67.2%). Group B members arrived as working-age adults and are now in their prime earning years (roughly 38–55). Group C has more retirees, pulling their rate down. Group A includes more students and people still getting established. It's mostly a life-stage effect — not about motivation or opportunity.
+    </div>
+  </div>
+
+  <div class="reveal-card" onclick="toggleReveal(this)">
+    <div class="rc-question">
+      Group A has more people than Group B — so does it always have more of everything?
+      <span class="rc-icon">+</span>
+    </div>
+    <div class="rc-answer">
+      Not at all — and this is the core math insight for this lesson. Group A has 91,815 people, but only 22.2% own homes (~20,383 people). Group C has 100,542 people and 60.7% own homes (~61,029 people). Group C has roughly 3× as many home owners despite being only slightly bigger. Size matters, but <em>rate</em> matters more than you might expect.
+    </div>
+  </div>
+
+  <div class="callout key">
+    <strong>Before you do the math</strong>
+    You've now spent time with this data as a story about real people. Keep that in mind as we turn to percentages. The numbers represent people who made difficult journeys, are building new lives, raising families, aging. The math helps us see patterns in that complexity.
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(0)">← Back</button>
+    <button class="btn primary" onclick="goTo(2)">Continue to Lesson →</button>
+  </div>
+</div>
+
+<!-- SECTION 0: Intro (original, now section 2) -->
+<!-- SECTION 0: Intro -->
+<div class="section" id="section-2">
+  <div class="section-tag">Lesson · Comparing Percentages</div>
+  <h1>When <span style="color:var(--c1)">57%</span> and <span style="color:var(--c2)">41%</span> tell completely different stories</h1>
+  <p>Percentages are everywhere — in news headlines, government reports, your grade. But <em>comparing</em> percentages across different groups is where it gets interesting, and where people make the most mistakes.</p>
+  <p>In this lesson, you'll use <strong>real U.S. Census data</strong> about Seattle's immigrant population to practice comparing percentages the right way.</p>
+
+  <div class="callout">
+    <strong>The Data</strong>
+    The U.S. Census Bureau surveyed 254,278 foreign-born residents of Seattle, King County. They split them into three groups based on when they arrived in the U.S.:
+    <div class="data-cards" style="margin-top:1rem">
+      <div class="data-card">
+        <div class="cohort-label">Group A</div>
+        <div class="big-num" style="color:var(--c1)">91,815</div>
+        <div class="context">Arrived 2010 or later</div>
+      </div>
+      <div class="data-card">
+        <div class="cohort-label">Group B</div>
+        <div class="big-num" style="color:var(--c2)">61,921</div>
+        <div class="context">Arrived 2000–2009</div>
+      </div>
+      <div class="data-card">
+        <div class="cohort-label">Group C</div>
+        <div class="big-num" style="color:var(--c3)">100,542</div>
+        <div class="context">Arrived before 2000</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Notice anything? The groups have <strong>very different sizes</strong>. That's the first thing you always check when comparing percentages.</p>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(1)">← Back</button>
+    <button class="btn primary" onclick="goTo(3)">Continue to Lesson →</button>
+  </div>
+</div>
+
+<!-- SECTION 1: What is a percentage? Review -->
+<div class="section" id="section-3">
+  <div class="section-tag">Part 1 · Quick Review</div>
+  <h2>What a percentage actually means</h2>
+
+  <p>A percentage is a way of expressing a number as a fraction of 100. It lets us compare things that come from groups of different sizes.</p>
+
+  <div class="formula">
+    <span class="big">Percentage = (Part ÷ Whole) × 100</span>
+    <span style="font-size:0.85rem; color:var(--muted); font-family:'IBM Plex Sans',sans-serif; font-weight:400">or: what fraction of the whole does the part represent?</span>
+  </div>
+
+  <p>For example: 57.2% of Group A (arrived 2010+) were born in Asia. That means:</p>
+
+  <div class="formula" style="font-size:1rem">
+    57.2% of 91,815 ≈ <span style="color:var(--c1)">52,518 people</span> born in Asia in Group A
+  </div>
+
+  <div class="callout key">
+    <strong>Key Idea</strong>
+    The same percentage means a different <em>number of people</em> depending on how big the group is. 57% of 91,815 is very different from 57% of 500.
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title">Asia-born residents by group — same % range, very different counts</div>
+    <div class="chart-wrap short">
+      <canvas id="absChart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--c1)"></span>Group A (2010+)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c2)"></span>Group B (2000–09)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c3)"></span>Group C (before 2000)</div>
+    </div>
+  </div>
+
+  <p>Groups A and C both have ~57% from Asia — but Group C has about <strong>5,000 more Asia-born people</strong> because it's a bigger group overall.</p>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(2)">← Back</button>
+    <button class="btn primary" onclick="goTo(4)">Next →</button>
+  </div>
+</div>
+
+<!-- SECTION 2: Comparing percentages -->
+<div class="section" id="section-4">
+  <div class="section-tag">Part 2 · Core Skill</div>
+  <h2>How to compare percentages across groups</h2>
+
+  <p>When comparing percentages, you can ask three questions:</p>
+
+  <div class="callout">
+    <strong>Question 1 — Which group has more?</strong>
+    Simple: which percentage is larger? e.g. 34.8% vs 18.3% vs 15.9% — Group A wins.
+  </div>
+  <div class="callout">
+    <strong>Question 2 — How much more? (Percentage point difference)</strong>
+    Subtract one percentage from another. This gives you the <em>gap</em>.
+    e.g. 34.8% − 15.9% = <strong>18.9 percentage points</strong> difference between Group A and Group C.
+  </div>
+  <div class="callout">
+    <strong>Question 3 — How many times more? (Ratio)</strong>
+    Divide one percentage by another. This shows <em>relative</em> size of the difference.
+    e.g. 34.8 ÷ 15.9 ≈ <strong>2.2×</strong> — Group A has more than twice the grad degree rate.
+  </div>
+
+  <p>Now let's explore. Pick a topic below and the chart will update. Look for the group that stands out most.</p>
+
+  <div class="compare-controls">
+    <button class="topic-btn active" data-topic="education" onclick="updateCompare('education', this)">Education</button>
+    <button class="topic-btn" data-topic="poverty" onclick="updateCompare('poverty', this)">Poverty</button>
+    <button class="topic-btn" data-topic="homeown" onclick="updateCompare('homeown', this)">Home Ownership</button>
+    <button class="topic-btn" data-topic="citizenship" onclick="updateCompare('citizenship', this)">Citizenship</button>
+    <button class="topic-btn" data-topic="region" onclick="updateCompare('region', this)">Region of Birth</button>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title" id="compare-title">Graduate/Professional Degree (%)</div>
+    <div class="chart-wrap">
+      <canvas id="compareChart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--c1)"></span>Group A (2010+)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c2)"></span>Group B (2000–09)</div>
+      <div class="legend-item"><span class="dot" style="background:var(--c3)"></span>Group C (before 2000)</div>
+    </div>
+  </div>
+
+  <div class="insight-reveal" id="compare-insight">
+    <div class="insight-label">📊 What this shows</div>
+    <span id="insight-text">Select a topic above to see an analysis.</span>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(3)">← Back</button>
+    <button class="btn primary" onclick="goTo(5)">Next →</button>
+  </div>
+</div>
+
+<!-- SECTION 3: Pitfalls -->
+<div class="section" id="section-5">
+  <div class="section-tag">Part 3 · Watch Out</div>
+  <h2>Three traps when comparing percentages</h2>
+
+  <div class="pitfall">
+    <div class="pitfall-title">⚠ Trap 1 · Forgetting group size</div>
+    <p style="margin:0; color:#ffbbbb; font-size:13px">"Group A and Group C both have ~57% from Asia, so they must have the same number of Asian-born residents." <strong>Wrong.</strong> Group C has ~100k total vs Group A's ~92k — so Group C actually has more people, even at the same percentage.</p>
+  </div>
+
+  <div class="pitfall">
+    <div class="pitfall-title">⚠ Trap 2 · Confusing percentage points with percent change</div>
+    <p style="margin:0; color:#ffbbbb; font-size:13px">Group A has 34.8% with grad degrees. Group C has 15.9%. The difference is <strong>18.9 percentage points</strong> — but as a percent change, Group A's rate is 119% higher than Group C's. Those are very different claims. Always be clear which one you mean.</p>
+  </div>
+
+  <div class="pitfall">
+    <div class="pitfall-title">⚠ Trap 3 · A higher % doesn't always mean "better"</div>
+    <p style="margin:0; color:#ffbbbb; font-size:13px">Group A has the highest poverty rate (18.4%) AND the highest median household income ($95,809). How? Recent arrivals are diverse — some are highly-paid tech workers, others are recent refugees. One percentage can't tell the whole story.</p>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title">The paradox: Group A has highest income AND highest poverty</div>
+    <div class="chart-wrap short">
+      <canvas id="paradoxChart"></canvas>
+    </div>
+  </div>
+
+  <div class="callout key">
+    <strong>Takeaway</strong>
+    Always ask: What question am I actually trying to answer? One comparison in isolation can mislead. Look at multiple indicators before drawing conclusions.
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(4)">← Back</button>
+    <button class="btn primary" onclick="goTo(6)">Take the Quiz →</button>
+  </div>
+</div>
+
+<!-- SECTION 4: Quiz -->
+<div class="section" id="section-6">
+  <div class="section-tag">Part 4 · Check Your Understanding</div>
+  <h2>Quiz — use the data</h2>
+  <p style="color:var(--muted); font-size:13px; margin-bottom:1rem">All answers can be worked out from the data you've seen. Take your time.</p>
+
+  <div id="score-display">Score: <span id="score-val">0</span> / 5</div>
+
+  <!-- Q1 -->
+  <div class="quiz-card" id="q1">
+    <div class="q-num">Question 1 of 5</div>
+    <div class="q-text">In Group A (arrived 2010+), 88.4% are not yet citizens. In Group C (arrived before 2000), only 21.0% are not citizens. What is the percentage point difference?</div>
+    <div class="options">
+      <button class="option-btn" onclick="answer(this,'q1',false)"><span class="opt-letter">A</span>67.4 percentage points</button>
+      <button class="option-btn" onclick="answer(this,'q1',true)"><span class="opt-letter">B</span>67.4 percentage points — Group A has 67.4 pp higher non-citizen rate</button>
+      <button class="option-btn" onclick="answer(this,'q1',false)"><span class="opt-letter">C</span>4.2 times higher (ratio only)</button>
+      <button class="option-btn" onclick="answer(this,'q1',false)"><span class="opt-letter">D</span>109.4 percentage points</button>
+    </div>
+    <div class="feedback" id="q1-fb"></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card" id="q2">
+    <div class="q-num">Question 2 of 5</div>
+    <div class="q-text">Group B (2000–09) has 26.3% from Latin America. Group A (2010+) has 12.6%. Roughly how many times higher is Group B's Latin America percentage?</div>
+    <div class="options">
+      <button class="option-btn" onclick="answer(this,'q2',false)"><span class="opt-letter">A</span>About 1.3×</button>
+      <button class="option-btn" onclick="answer(this,'q2',true)"><span class="opt-letter">B</span>About 2.1×</button>
+      <button class="option-btn" onclick="answer(this,'q2',false)"><span class="opt-letter">C</span>About 13.7 percentage points (not a ratio)</button>
+      <button class="option-btn" onclick="answer(this,'q2',false)"><span class="opt-letter">D</span>About 4×</button>
+    </div>
+    <div class="feedback" id="q2-fb"></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card" id="q3">
+    <div class="q-num">Question 3 of 5</div>
+    <div class="q-text">Group C has 100,542 total people. 60.7% own their home. Approximately how many people in Group C own their home?</div>
+    <div class="options">
+      <button class="option-btn" onclick="answer(this,'q3',false)"><span class="opt-letter">A</span>About 22,000</button>
+      <button class="option-btn" onclick="answer(this,'q3',false)"><span class="opt-letter">B</span>About 45,000</button>
+      <button class="option-btn" onclick="answer(this,'q3',true)"><span class="opt-letter">C</span>About 61,000</button>
+      <button class="option-btn" onclick="answer(this,'q3',false)"><span class="opt-letter">D</span>About 75,000</button>
+    </div>
+    <div class="feedback" id="q3-fb"></div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-card" id="q4">
+    <div class="q-num">Question 4 of 5</div>
+    <div class="q-text">A student says: "Group A must have the most home owners because it's the biggest group." What's the flaw in this reasoning?</div>
+    <div class="options">
+      <button class="option-btn" onclick="answer(this,'q4',false)"><span class="opt-letter">A</span>Group A is actually the smallest group</button>
+      <button class="option-btn" onclick="answer(this,'q4',true)"><span class="opt-letter">B</span>Group A has the lowest home ownership rate (22.2%), so despite its size, it likely has fewer owners than Group C</button>
+      <button class="option-btn" onclick="answer(this,'q4',false)"><span class="opt-letter">C</span>You can't compare home ownership across groups</button>
+      <button class="option-btn" onclick="answer(this,'q4',false)"><span class="opt-letter">D</span>The student is correct</button>
+    </div>
+    <div class="feedback" id="q4-fb"></div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="quiz-card" id="q5">
+    <div class="q-num">Question 5 of 5</div>
+    <div class="q-text">Group A has a poverty rate of 18.4% and a median household income of $95,809. Group C has a poverty rate of 10.6% and median income of $86,085. What's the most accurate interpretation?</div>
+    <div class="options">
+      <button class="option-btn" onclick="answer(this,'q5',false)"><span class="opt-letter">A</span>Group A is doing worse economically in every way</button>
+      <button class="option-btn" onclick="answer(this,'q5',false)"><span class="opt-letter">B</span>Group C is doing worse economically in every way</button>
+      <button class="option-btn" onclick="answer(this,'q5',true)"><span class="opt-letter">C</span>Group A shows more inequality — higher incomes at the top and more poverty, suggesting a wider range of economic outcomes</button>
+      <button class="option-btn" onclick="answer(this,'q5',false)"><span class="opt-letter">D</span>The two groups are economically identical</button>
+    </div>
+    <div class="feedback" id="q5-fb"></div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(5)">← Back</button>
+    <button class="btn primary" onclick="goTo(7)">Write your reflection →</button>
+  </div>
+</div>
+
+<!-- SECTION 7: Reflection & Email -->
+<div class="section" id="section-7">
+  <div class="section-tag">Part 6 · Reflection</div>
+  <h2>Write your reflection</h2>
+  <p>Choose a prompt below — it will become the title of your reflection. Then write your response, download the file, and email it to your teacher at <strong>jtaylor@seattleacademy.org</strong>.</p>
+
+  <div class="prompt-grid">
+    <div class="prompt-card" onclick="selectPrompt(this, 0)">
+      <div class="prompt-num">01</div>
+      <div class="prompt-text">What was the most surprising thing you found in the Seattle data, and why did it surprise you?</div>
+    </div>
+    <div class="prompt-card" onclick="selectPrompt(this, 1)">
+      <div class="prompt-num">02</div>
+      <div class="prompt-text">Describe a real-world situation where confusing percentage points with a ratio could mislead someone.</div>
+    </div>
+    <div class="prompt-card" onclick="selectPrompt(this, 2)">
+      <div class="prompt-num">03</div>
+      <div class="prompt-text">Group A had the highest income and the highest poverty rate. What does that tell you about using a single statistic to describe a group?</div>
+    </div>
+    <div class="prompt-card" onclick="selectPrompt(this, 3)">
+      <div class="prompt-num">04</div>
+      <div class="prompt-text">How did working with real data change how you think about percentages compared to textbook problems?</div>
+    </div>
+  </div>
+
+  <div class="selected-prompt-display" id="selectedPromptDisplay" style="display:none">
+    <span class="sp-label">Your prompt</span>
+    <span id="selectedPromptText"></span>
+  </div>
+
+  <div class="email-composer">
+    <div class="ec-field">
+      <label class="ec-label">Your name</label>
+      <input type="text" class="ec-input" id="senderName" placeholder="First Last" oninput="updatePreview()" />
+    </div>
+    <div class="ec-field">
+      <label class="ec-label">Your reflection <span style="color:var(--muted); font-weight:400">(aim for 3–5 sentences)</span></label>
+      <textarea class="ec-input ec-textarea" id="reflectionText" placeholder="Select a prompt above to begin..." oninput="updatePreview(); updateCharCount(this)" disabled></textarea>
+      <div class="char-count" id="charCount">0 characters</div>
+    </div>
+
+    <div class="ec-preview-box" id="previewBox">
+      <div class="ec-preview-label">Preview</div>
+      <div class="ec-preview-body" id="previewBody">Select a prompt above to begin...</div>
+    </div>
+
+    <div class="ec-actions">
+      <button class="btn primary" id="downloadBtn" onclick="downloadReflection()">⬇ Download reflection</button>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:0.75rem">After downloading, attach the file to an email and send it to <strong style="color:var(--text)">jtaylor@seattleacademy.org</strong></p>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(6)">← Back to Quiz</button>
+    <button class="btn primary" onclick="goTo(8)">See Summary →</button>
+  </div>
+</div>
+
+<!-- SECTION 8: Summary (original section 7) -->
+<div class="section" id="section-8">
+  <div class="section-tag">Lesson Complete</div>
+  <h2>What you learned</h2>
+
+  <div id="final-score-msg" style="margin-bottom:1.5rem; font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800;"></div>
+
+  <div class="summary-grid">
+    <div class="summary-item">
+      <h4>✓ Group size matters</h4>
+      <p>The same percentage means different raw numbers depending on how big the group is. Always check the denominator.</p>
+    </div>
+    <div class="summary-item">
+      <h4>✓ Percentage point difference</h4>
+      <p>Subtract percentages to find the gap. "34.8% vs 15.9%" → 18.9 pp difference. This is not the same as percent change.</p>
+    </div>
+    <div class="summary-item">
+      <h4>✓ Ratios show relative size</h4>
+      <p>Dividing percentages tells you how many times larger one rate is. 34.8 ÷ 15.9 ≈ 2.2× — a more intuitive comparison.</p>
+    </div>
+    <div class="summary-item">
+      <h4>✓ No single percentage tells the whole story</h4>
+      <p>Group A had the highest income AND poverty rate — seeming contradictions that reveal real complexity in the data.</p>
+    </div>
+  </div>
+
+  <div class="callout" style="border-left-color: var(--c3)">
+    <strong style="color:var(--c3)">Real-World Skill</strong>
+    Every time you see a headline like "Group X is 2× more likely to…" — you now know to ask: 2× more likely than what? How big are the groups? Is that percentage points or a ratio? You're reading data more critically than most adults.
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn" onclick="goTo(7)">← Back</button>
+    <button class="btn primary" onclick="goTo(2)">Start Over</button>
+  </div>
+</div>
+
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ---- Reveal cards ----
+function toggleReveal(card) {
+  if (card.classList.contains('open')) return;
+  card.classList.add('open');
+}
+
+// ---- Intro charts (sections 0 & 1) ----
+// Region of birth chart
+(function() {
+  const ctx = document.getElementById('introRegionChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Asia', 'Latin America', 'Africa', 'Europe', 'N. America', 'Oceania'],
+      datasets: [
+        { label: 'Group A (2010+)', data: [57.2, 12.6, 15.5, 9.9, 2.9, 1.8], backgroundColor: 'rgba(255,107,107,0.75)' },
+        { label: 'Group B (2000–09)', data: [41.1, 26.3, 16.5, 10.3, 3.5, 2.2], backgroundColor: 'rgba(78,205,196,0.75)' },
+        { label: 'Group C (before 2000)', data: [56.9, 17.1, 6.5, 13.4, 4.4, 1.7], backgroundColor: 'rgba(255,230,109,0.75)' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}%` } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' } } }
+    }
+  });
+})();
+
+// Age distribution chart
+(function() {
+  const ctx = document.getElementById('introAgeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Under 18', '18–24', '25–44', '45–54', '55–64', '65–74', '75–84', '85+'],
+      datasets: [
+        { label: 'Group A (2010+)', data: [12.1, 14.7, 59.3, 6.6, 4.2, 2.3, 0.8, 0.1], borderColor: 'rgba(255,107,107,0.9)', backgroundColor: 'rgba(255,107,107,0.1)', fill: true, tension: 0.4, pointRadius: 3 },
+        { label: 'Group B (2000–09)', data: [4.1, 9.8, 53.3, 18.7, 7.9, 3.5, 1.8, 0.9], borderColor: 'rgba(78,205,196,0.9)', backgroundColor: 'rgba(78,205,196,0.1)', fill: true, tension: 0.4, pointRadius: 3 },
+        { label: 'Group C (before 2000)', data: [0, 1.5, 26.9, 24.0, 21.4, 15.0, 7.6, 3.5], borderColor: 'rgba(255,230,109,0.9)', backgroundColor: 'rgba(255,230,109,0.1)', fill: true, tension: 0.4, pointRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}%` } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' } } }
+    }
+  });
+})();
+
+// Education chart
+(function() {
+  const ctx = document.getElementById('introEduChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['< High School', 'High School', 'Some College', "Bachelor's", 'Graduate+'],
+      datasets: [
+        { label: 'Group A (2010+)', data: [13.1, 15.1, 12.5, 24.5, 34.8], backgroundColor: 'rgba(255,107,107,0.75)' },
+        { label: 'Group B (2000–09)', data: [22.8, 18.1, 19.8, 21.1, 18.3], backgroundColor: 'rgba(78,205,196,0.75)' },
+        { label: 'Group C (before 2000)', data: [20.4, 17.8, 23.0, 22.9, 15.9], backgroundColor: 'rgba(255,230,109,0.75)' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}%` } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' } } }
+    }
+  });
+})();
+
+// Housing chart
+(function() {
+  const ctx = document.getElementById('introHousingChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Group A', 'Group B', 'Group C'],
+      datasets: [
+        { label: 'Owner-occupied', data: [22.2, 37.2, 60.7], backgroundColor: ['rgba(255,107,107,0.75)', 'rgba(78,205,196,0.75)', 'rgba(255,230,109,0.75)'] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw}% own their home` } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' }, max: 100 } }
+    }
+  });
+})();
+
+// Income chart
+(function() {
+  const ctx = document.getElementById('introIncomeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Group A', 'Group B', 'Group C'],
+      datasets: [
+        { label: 'Median HH Income', data: [95809, 75355, 86085], backgroundColor: ['rgba(255,107,107,0.75)', 'rgba(78,205,196,0.75)', 'rgba(255,230,109,0.75)'] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` $${c.raw.toLocaleString()}` } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } } }
+    }
+  });
+})();
+
+// ---- State ----
+const TOTAL_SECTIONS = 9;
+let score = 0;
+let answered = {};
+
+// ---- Navigation ----
+function goTo(n) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + n).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress(n);
+  if (n === 8) showFinalScore();
+  if (n === 7) populateScoreReadout();
+}
+
+function updateProgress(n) {
+  const pct = (n / (TOTAL_SECTIONS - 1)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  // Update dots
+  const container = document.getElementById('nav-steps');
+  container.innerHTML = '';
+  for (let i = 0; i < TOTAL_SECTIONS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot';
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('active');
+    dot.onclick = () => goTo(i);
+    container.appendChild(dot);
+  }
+}
+
+// ---- Charts ----
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#7a7890';
+
+const gridOpts = { color: 'rgba(255,255,255,0.05)', drawBorder: false };
+
+// Chart 1 (section 1): absolute count vs %
+const absCtx = document.getElementById('absChart').getContext('2d');
+new Chart(absCtx, {
+  type: 'bar',
+  data: {
+    labels: ['% from Asia', 'Actual people from Asia (÷100)'],
+    datasets: [
+      { label: 'Group A (2010+)', data: [57.2, Math.round(91815*0.572/100)], backgroundColor: 'rgba(255,107,107,0.7)' },
+      { label: 'Group B (2000–09)', data: [41.1, Math.round(61921*0.411/100)], backgroundColor: 'rgba(78,205,196,0.7)' },
+      { label: 'Group C (before 2000)', data: [56.9, Math.round(100542*0.569/100)], backgroundColor: 'rgba(255,230,109,0.7)' },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: gridOpts, ticks: { callback: v => v } }
+    }
+  }
+});
+
+// Chart 2 (section 2): interactive comparison
+const compareData = {
+  education: {
+    title: 'Graduate / Professional Degree (%)',
+    labels: ['Grad/Prof\nDegree'],
+    a: [34.8], b: [18.3], c: [15.9],
+    insight: 'Group A has 34.8% with graduate degrees — more than double Group C\'s 15.9%. That\'s an 18.9 percentage point gap and a 2.2× ratio. Recent arrivals to Seattle skew heavily toward high-skill workers and international students.'
+  },
+  poverty: {
+    title: 'Poverty Status (%)',
+    labels: ['Below poverty', '100–199% poverty', 'Above 200% poverty'],
+    a: [18.4, 15.0, 66.6], b: [13.7, 16.6, 69.7], c: [10.6, 11.9, 77.5],
+    insight: 'Group C (longest residents) has the lowest poverty rate at 10.6% — 7.8 percentage points lower than Group A\'s 18.4%. More time in the country tends to correlate with more economic stability, though this isn\'t universal.'
+  },
+  homeown: {
+    title: 'Housing Tenure (%)',
+    labels: ['Owner-occupied', 'Renter-occupied'],
+    a: [22.2, 77.8], b: [37.2, 62.8], c: [60.7, 39.3],
+    insight: 'Home ownership follows time in the U.S. closely. Group C is at 60.7% — nearly 3× Group A\'s 22.2%. A 38.5 percentage point gap. Buying a home takes time, savings, and credit history that recent arrivals are still building.'
+  },
+  citizenship: {
+    title: 'Citizenship Status (%)',
+    labels: ['Naturalized citizen', 'Not a citizen'],
+    a: [11.6, 88.4], b: [54.8, 45.2], c: [79.0, 21.0],
+    insight: 'Naturalization rates show a huge gradient: 11.6% → 54.8% → 79.0% across the three groups. Group C\'s rate is 6.8× Group A\'s. This makes sense — naturalization requires at least 5 years of permanent residency, so recent arrivals simply haven\'t had time.'
+  },
+  region: {
+    title: 'World Region of Birth (%)',
+    labels: ['Asia', 'Latin America', 'Africa', 'Europe', 'N. America', 'Oceania'],
+    a: [57.2, 12.6, 15.5, 9.9, 2.9, 1.8],
+    b: [41.1, 26.3, 16.5, 10.3, 3.5, 2.2],
+    c: [56.9, 17.1, 6.5, 13.4, 4.4, 1.7],
+    insight: 'Latin America\'s share drops from 26.3% (Group B) to 12.6% (Group A) — a halving. Africa\'s share rose from 6.5% (Group C) to 15.5% (Group A), more than doubling. These shifts reflect changing global migration patterns over decades.'
+  }
+};
+
+let compareChart = null;
+
+function updateCompare(topic, btn) {
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = compareData[topic];
+  document.getElementById('compare-title').textContent = d.title;
+  if (compareChart) compareChart.destroy();
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  compareChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.labels,
+      datasets: [
+        { label: 'Group A (2010+)', data: d.a, backgroundColor: 'rgba(255,107,107,0.75)' },
+        { label: 'Group B (2000–09)', data: d.b, backgroundColor: 'rgba(78,205,196,0.75)' },
+        { label: 'Group C (before 2000)', data: d.c, backgroundColor: 'rgba(255,230,109,0.75)' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: gridOpts, ticks: { callback: v => v + '%' }, max: 100 }
+      }
+    }
+  });
+  const insightEl = document.getElementById('compare-insight');
+  document.getElementById('insight-text').textContent = d.insight;
+  insightEl.classList.add('shown');
+}
+
+// Initialize with education
+updateCompare('education', document.querySelector('[data-topic="education"]'));
+
+// Chart: paradox (section 3)
+const paradoxCtx = document.getElementById('paradoxChart').getContext('2d');
+new Chart(paradoxCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Median HH Income ($k)', 'Poverty Rate (%)'],
+    datasets: [
+      { label: 'Group A (2010+)', data: [95.8, 18.4], backgroundColor: 'rgba(255,107,107,0.75)' },
+      { label: 'Group B (2000–09)', data: [75.4, 13.7], backgroundColor: 'rgba(78,205,196,0.75)' },
+      { label: 'Group C (before 2000)', data: [86.1, 10.6], backgroundColor: 'rgba(255,230,109,0.75)' },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10 } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}` } }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: gridOpts }
+    }
+  }
+});
+
+// ---- Quiz ----
+const correctFeedback = {
+  q1: "Correct! 88.4% − 21.0% = 67.4 percentage points. This is a huge gap — most recent arrivals haven't had time to complete the naturalization process (which requires 5+ years as a permanent resident).",
+  q2: "Correct! 26.3 ÷ 12.6 ≈ 2.09×, so about 2.1 times higher. The 13.7 pp gap is also useful, but the ratio tells you the relative size of the difference.",
+  q3: "Correct! 100,542 × 0.607 ≈ 61,029 people. Always multiply the total by the decimal form of the percentage.",
+  q4: "Correct! A bigger group doesn't mean more of something — the rate matters. Group A has 91,815 people but only 22.2% own homes (~20,383). Group C has 100,542 people and 60.7% own homes (~61,029). Group C has roughly 3× as many home owners.",
+  q5: "Correct! This is the key insight about within-group inequality. Group A likely contains both very high earners (e.g. tech workers on H-1B visas) and very low earners (e.g. recent refugees), pulling the median up while pushing the poverty rate up too."
+};
+
+const wrongFeedback = {
+  q1: "Not quite. The percentage point difference is simply 88.4 − 21.0 = 67.4. Option A and B both say 67.4, but B correctly adds context about which group has the higher rate.",
+  q2: "Not quite. To find how many times higher: 26.3 ÷ 12.6 ≈ 2.09, so about 2.1×. Option C gives the percentage point difference (13.7 pp), which is different from a ratio.",
+  q3: "Not quite. Multiply total × percentage as a decimal: 100,542 × 0.607 ≈ 61,029. That's about 61,000 — option C.",
+  q4: "Not quite. The flaw is that a bigger group doesn't automatically mean more home owners — the rate matters. Group A has the largest population but the lowest ownership rate (22.2%), while Group C has the highest rate (60.7%).",
+  q5: "Not quite. Both groups have strengths — Group A has higher median income but also higher poverty. This suggests Group A has more inequality (a wider spread of incomes) rather than simply doing better or worse overall."
+};
+
+function answer(btn, qId, isCorrect) {
+  if (answered[qId]) return;
+  answered[qId] = true;
+  const card = document.getElementById(qId);
+  card.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  const fb = document.getElementById(qId + '-fb');
+  if (isCorrect) {
+    score++;
+    document.getElementById('score-val').textContent = score;
+    fb.textContent = '✓ ' + correctFeedback[qId];
+    fb.className = 'feedback correct-fb';
+  } else {
+    fb.textContent = '✗ ' + wrongFeedback[qId];
+    fb.className = 'feedback wrong-fb';
+    // Also highlight correct
+    card.querySelectorAll('.option-btn').forEach(b => {
+      if (!b.classList.contains('wrong')) {
+        // find the correct one
+      }
+    });
+  }
+}
+
+function showFinalScore() {
+  const msgs = [
+    [0,1, "Keep going — review Parts 1–3 and try again!"],
+    [2,3, "Good effort! Review the sections on percentage point differences and group size."],
+    [4,4, "Almost there! One slip — review the section on traps."],
+    [5,5, "Perfect score! You've got this."]
+  ];
+  let msg = '';
+  for (const [lo, hi, m] of msgs) {
+    if (score >= lo && score <= hi) { msg = m; break; }
+  }
+  const el = document.getElementById('final-score-msg');
+  const color = score === 5 ? 'var(--correct)' : score >= 4 ? 'var(--c3)' : score >= 2 ? 'var(--c2)' : 'var(--c1)';
+  el.innerHTML = `You scored <span style="color:${color}">${score}/5</span> — ${msg}`;
+}
+
+// ---- Reflection & Download ----
+const prompts = [
+  'What was the most surprising thing you found in the Seattle data, and why did it surprise you?',
+  'Describe a real-world situation where confusing percentage points with a ratio could mislead someone.',
+  'Group A had the highest income and the highest poverty rate. What does that tell you about using a single statistic to describe a group?',
+  'How did working with real data change how you think about percentages compared to textbook problems?'
+];
+
+let selectedPromptIndex = -1;
+
+function selectPrompt(card, index) {
+  document.querySelectorAll('.prompt-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedPromptIndex = index;
+
+  const display = document.getElementById('selectedPromptDisplay');
+  display.style.display = 'block';
+  document.getElementById('selectedPromptText').textContent = prompts[index];
+
+  const textarea = document.getElementById('reflectionText');
+  textarea.disabled = false;
+  textarea.placeholder = 'Write your response here...';
+  textarea.focus();
+
+  updatePreview();
+}
+
+function populateScoreReadout() {}
+
+function updateCharCount(el) {
+  const len = el.value.length;
+  document.getElementById('charCount').textContent = len + ' character' + (len !== 1 ? 's' : '');
+}
+
+function updatePreview() {
+  const name = document.getElementById('senderName').value.trim() || 'Student';
+  const reflection = document.getElementById('reflectionText').value.trim();
+  const preview = document.getElementById('previewBody');
+  preview.style.color = '';
+
+  if (selectedPromptIndex === -1) {
+    preview.textContent = 'Select a prompt above to begin...';
+    return;
+  }
+
+  const prompt = prompts[selectedPromptIndex];
+  preview.textContent = 'Student: ' + name + '\nQuiz score: ' + score + ' / 5\n\nPROMPT: ' + prompt + '\n\n' + (reflection || '[your reflection will appear here]');
+}
+
+function downloadReflection() {
+  const name = document.getElementById('senderName').value.trim() || 'Student';
+  const reflection = document.getElementById('reflectionText').value.trim();
+  const preview = document.getElementById('previewBody');
+
+  if (selectedPromptIndex === -1) {
+    preview.textContent = 'Please select a prompt before downloading.';
+    preview.style.color = 'var(--c1)';
+    return;
+  }
+
+  if (!reflection) {
+    preview.textContent = 'Please write your reflection before downloading.';
+    preview.style.color = 'var(--c1)';
+    return;
+  }
+
+  const prompt = prompts[selectedPromptIndex];
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const lines = [
+    'PERCENTAGES LESSON — REFLECTION',
+    '================================',
+    'Student: ' + name,
+    'Quiz score: ' + score + ' / 5',
+    'Date: ' + date,
+    '',
+    'PROMPT',
+    '------',
+    prompt,
+    '',
+    'RESPONSE',
+    '--------',
+    reflection,
+    '',
+    '================================',
+    'Lesson: Comparing Percentages Across Groups',
+    'Data source: U.S. Census Bureau, ACS 5-Year Estimates 2021',
+    'Seattle CCD, King County, Washington',
+  ];
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'reflection-' + name.replace(/\s+/g, '-').toLowerCase() + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const btn = document.getElementById('downloadBtn');
+  btn.textContent = '\u2713 Downloaded \u2014 now email it to jtaylor@seattleacademy.org';
+  btn.style.background = 'var(--correct)';
+  btn.style.borderColor = 'var(--correct)';
+  btn.style.color = '#000';
+}
+
+
+// Init progress
+updateProgress(0);
+</script>
+</body>
+</html>
